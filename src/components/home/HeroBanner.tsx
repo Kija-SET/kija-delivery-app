@@ -9,50 +9,52 @@ export const HeroBanner = () => {
 
   return (
     <div className="relative overflow-hidden gradient-purple-light">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Bem-vindo ao Açaí Kija! 🍇
-            </h1>
-            <p className="text-lg text-gray-700">
-              Os melhores açaís e sorvetes artesanais da região
-            </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="text-center space-y-4">
+          {/* Logo Central */}
+          <div className="flex justify-center mb-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg hover-lift">
+              <img
+                src="/lovable-uploads/1d9a76da-3e98-488b-a1ae-c01946763f10.png"
+                alt="Açaí Kija"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
 
-          {/* Store Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            <div className="bg-white rounded-lg p-4 shadow-md hover-lift">
+          {/* Store Info Cards - Compact */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg p-3 shadow-md hover-lift">
               <div className="flex items-center justify-center gap-2 text-purple-600">
-                <Clock className="h-5 w-5" />
-                <span className="font-semibold">{storeInfo.estimatedDelivery}</span>
+                <Clock className="h-4 w-4" />
+                <span className="font-semibold text-sm">{storeInfo.estimatedDelivery}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Tempo de entrega</p>
+              <p className="text-xs text-gray-600 mt-1">Tempo de entrega</p>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-md hover-lift">
+            <div className="bg-white rounded-lg p-3 shadow-md hover-lift">
               <div className="flex items-center justify-center gap-2 text-purple-600">
-                <Star className="h-5 w-5 fill-current" />
-                <span className="font-semibold">{storeInfo.rating}</span>
-                <span className="text-sm text-gray-600">({storeInfo.reviewCount})</span>
+                <Star className="h-4 w-4 fill-current" />
+                <span className="font-semibold text-sm">{storeInfo.rating}</span>
+                <span className="text-xs text-gray-600">({storeInfo.reviewCount})</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Avaliação</p>
+              <p className="text-xs text-gray-600 mt-1">Avaliação</p>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-md hover-lift">
+            <div className="bg-white rounded-lg p-3 shadow-md hover-lift">
               <div className="flex items-center justify-center gap-2 text-purple-600">
-                <Truck className="h-5 w-5" />
-                <span className="font-semibold">
+                <Truck className="h-4 w-4" />
+                <span className="font-semibold text-sm">
                   {storeInfo.deliveryFee === 0 ? 'Grátis' : `R$ ${storeInfo.deliveryFee.toFixed(2)}`}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Entrega</p>
+              <p className="text-xs text-gray-600 mt-1">Entrega</p>
             </div>
           </div>
 
           {/* Location Info */}
           {userLocation ? (
-            <div className="bg-white rounded-lg p-4 shadow-md max-w-md mx-auto">
+            <div className="bg-white rounded-lg p-3 shadow-md max-w-md mx-auto">
               <p className="text-sm text-gray-600">
                 📍 Entregando em <strong>{userLocation.city}, {userLocation.state}</strong>
               </p>

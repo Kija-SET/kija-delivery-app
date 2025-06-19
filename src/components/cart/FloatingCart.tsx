@@ -2,17 +2,23 @@
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
+import { useNavigate } from 'react-router-dom';
 
 export const FloatingCart = () => {
-  const { toggleCart, getCartItemsCount, getCartTotal } = useStore();
+  const navigate = useNavigate();
+  const { getCartItemsCount, getCartTotal } = useStore();
   const itemsCount = getCartItemsCount();
   const total = getCartTotal();
 
   if (itemsCount === 0) return null;
 
+  const handleCheckout = () => {
+    navigate('/checkout');
+  };
+
   return (
     <Button
-      onClick={toggleCart}
+      onClick={handleCheckout}
       className="fixed bottom-4 left-4 right-4 z-40 gradient-purple text-white shadow-lg hover-lift h-14 md:left-auto md:right-4 md:w-auto md:px-6"
     >
       <div className="flex items-center justify-between w-full md:gap-3 md:w-auto">
@@ -23,7 +29,7 @@ export const FloatingCart = () => {
               {itemsCount}
             </span>
           </div>
-          <span className="font-medium">Ver carrinho</span>
+          <span className="font-medium">Fazer Pedido</span>
         </div>
         <span className="font-bold">R$ {total.toFixed(2)}</span>
       </div>
