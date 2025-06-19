@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,43 +7,116 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Plus, Upload } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminPanel = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const { user, isAdmin, loading, signOut } = useAuth();
+  const [produtos, setProdutos] = useState([]);
+  const [banners, setBanners] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [sqlQuery, setSqlQuery] = useState('');
+  const [sqlResult, setSqlResult] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (credentials.username === 'admin' && credentials.password === 'admin123') {
-      setIsAuthenticated(true);
-    } else {
-      alert('Credenciais inválidas!');
+  useEffect(() => {
+    if (!loading && user && isAdmin) {
+      fetchData();
+    }
+  }, [user, isAdmin, loading]);
+
+  const fetchData = async () => {
+    try {
+      // Buscar produtos
+      const { data: produtosData } = await supabase
+        .from('produtos')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Buscar banners
+      const { data: bannersData } = await supabase
+        .from('banners')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Buscar pedidos
+      const { data: pedidosData } = await supabase
+        .from('pedidos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      setProdutos(produtosData || []);
+      setBanners(bannersData || []);
+      setPedidos(pedidosData || []);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
     }
   };
 
-  if (!isAuthenticated) {
+  const executeSql = async () => {
+    if (!sqlQuery.trim()) return;
+    
+    try {
+      setSqlResult('Executando consulta...');
+      
+      // Para consultas SELECT simples
+      if (sqlQuery.trim().toLowerCase().startsWith('select')) {
+        const { data, error } = await supabase.rpc('exec_sql', { 
+          query: sqlQuery 
+        });
+        
+        if (error) {
+          setSqlResult(`Erro: ${error.message}`);
+        } else {
+          setSqlResult(JSON.stringify(data, null, 2));
+        }
+      } else {
+        setSqlResult('Apenas consultas SELECT são permitidas via interface.');
+      }
+    } catch (error) {
+      setSqlResult(`Erro: ${error.message}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoginForm onSuccess={() => window.location.reload()} />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center gradient-purple bg-clip-text text-transparent">
-              Painel Administrativo
+            <CardTitle className="text-center text-red-600">
+              Acesso Negado
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Usuário"
-              value={credentials.username}
-              onChange={(e) => setCredentials({...credentials, username: e.target.value})}
-            />
-            <Input
-              type="password"
-              placeholder="Senha"
-              value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-            />
-            <Button onClick={handleLogin} className="w-full gradient-purple">
-              Entrar
+          <CardContent className="text-center space-y-4">
+            <p>Você não tem permissão para acessar o painel administrativo.</p>
+            <Button onClick={handleLogout} variant="outline">
+              Voltar ao Site
             </Button>
           </CardContent>
         </Card>
@@ -59,12 +132,14 @@ export const AdminPanel = () => {
             <h1 className="text-2xl font-bold gradient-purple bg-clip-text text-transparent">
               Painel Administrativo - Açaí Kija
             </h1>
-            <Button
-              variant="outline"
-              onClick={() => setIsAuthenticated(false)}
-            >
-              Sair
-            </Button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Bem-vindo, {user.email}
+              </span>
+              <Button variant="outline" onClick={handleLogout}>
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -83,7 +158,7 @@ export const AdminPanel = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Gerenciar Produtos</CardTitle>
+                  <CardTitle>Gerenciar Produtos ({produtos.length})</CardTitle>
                   <Button className="gradient-purple">
                     <Plus className="h-4 w-4 mr-2" />
                     Novo Produto
@@ -92,16 +167,30 @@ export const AdminPanel = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {['Açaí Tradicional', 'Sorvete de Chocolate', 'Guaraná Natural'].map((product) => (
-                    <div key={product} className="flex items-center justify-between p-4 border rounded-lg">
+                  {produtos.map((produto: any) => (
+                    <div key={produto.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-purple-100 rounded-lg"></div>
+                        <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center">
+                          {produto.imagem_url ? (
+                            <img 
+                              src={produto.imagem_url} 
+                              alt={produto.nome}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <span className="text-purple-600 text-xs">Sem foto</span>
+                          )}
+                        </div>
                         <div>
-                          <h3 className="font-semibold">{product}</h3>
-                          <p className="text-gray-600">R$ 12,90</p>
+                          <h3 className="font-semibold">{produto.nome}</h3>
+                          <p className="text-gray-600">R$ {produto.preco}</p>
+                          <p className="text-sm text-gray-500">{produto.categoria}</p>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex items-center space-x-2">
+                        <Badge className={produto.ativo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                          {produto.ativo ? 'Ativo' : 'Inativo'}
+                        </Badge>
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -111,6 +200,11 @@ export const AdminPanel = () => {
                       </div>
                     </div>
                   ))}
+                  {produtos.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      Nenhum produto cadastrado ainda.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -119,17 +213,26 @@ export const AdminPanel = () => {
           <TabsContent value="banners">
             <Card>
               <CardHeader>
-                <CardTitle>Gerenciar Banners Promocionais</CardTitle>
+                <CardTitle>Gerenciar Banners Promocionais ({banners.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Promoção Açaí</h3>
-                      <p className="text-gray-600">Pague 1, Leve 2</p>
+                  {banners.map((banner: any) => (
+                    <div key={banner.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-semibold">{banner.titulo}</h3>
+                        <p className="text-gray-600">{banner.descricao}</p>
+                      </div>
+                      <Badge className={banner.ativo ? "gradient-purple" : "bg-gray-100 text-gray-600"}>
+                        {banner.ativo ? 'Ativo' : 'Inativo'}
+                      </Badge>
                     </div>
-                    <Badge className="gradient-purple">Ativo</Badge>
-                  </div>
+                  ))}
+                  {banners.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      Nenhum banner cadastrado ainda.
+                    </p>
+                  )}
                   <Button className="w-full" variant="outline">
                     <Upload className="h-4 w-4 mr-2" />
                     Adicionar Novo Banner
@@ -142,19 +245,27 @@ export const AdminPanel = () => {
           <TabsContent value="orders">
             <Card>
               <CardHeader>
-                <CardTitle>Pedidos em Tempo Real</CardTitle>
+                <CardTitle>Pedidos em Tempo Real ({pedidos.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {['#001', '#002', '#003'].map((order) => (
-                    <div key={order} className="flex items-center justify-between p-4 border rounded-lg">
+                  {pedidos.map((pedido: any) => (
+                    <div key={pedido.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <h3 className="font-semibold">Pedido {order}</h3>
-                        <p className="text-gray-600">João Silva - R$ 25,80</p>
+                        <h3 className="font-semibold">Pedido #{pedido.id.slice(0, 8)}</h3>
+                        <p className="text-gray-600">Total: R$ {pedido.total}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(pedido.created_at).toLocaleString()}
+                        </p>
                       </div>
-                      <Badge>Em preparo</Badge>
+                      <Badge>{pedido.status}</Badge>
                     </div>
                   ))}
+                  {pedidos.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      Nenhum pedido registrado ainda.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -196,21 +307,30 @@ export const AdminPanel = () => {
           <TabsContent value="database">
             <Card>
               <CardHeader>
-                <CardTitle>Operações de Database</CardTitle>
+                <CardTitle>Consultas de Database</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea 
-                  placeholder="Digite comandos SQL (SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, TRUNCATE, ALTER)"
+                  placeholder="Digite consultas SQL SELECT para visualizar dados"
                   className="min-h-32"
+                  value={sqlQuery}
+                  onChange={(e) => setSqlQuery(e.target.value)}
                 />
                 <div className="flex space-x-2">
-                  <Button className="gradient-purple">Executar</Button>
-                  <Button variant="outline">Limpar</Button>
+                  <Button className="gradient-purple" onClick={executeSql}>
+                    Executar Consulta
+                  </Button>
+                  <Button variant="outline" onClick={() => {
+                    setSqlQuery('');
+                    setSqlResult('');
+                  }}>
+                    Limpar
+                  </Button>
                 </div>
                 <div className="bg-gray-100 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    Resultado das consultas aparecerá aqui...
-                  </p>
+                  <pre className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {sqlResult || 'Resultado das consultas aparecerá aqui...'}
+                  </pre>
                 </div>
               </CardContent>
             </Card>
