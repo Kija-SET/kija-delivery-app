@@ -11,12 +11,14 @@ import { BannersTab } from '@/components/admin/BannersTab';
 import { OrdersTab } from '@/components/admin/OrdersTab';
 import { ContentTab } from '@/components/admin/ContentTab';
 import { DatabaseTab } from '@/components/admin/DatabaseTab';
+import { useAdminBanners } from '@/hooks/useAdminBanners';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 export const AdminPanel = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const [pedidos, setPedidos] = useState([]);
+  const { banners } = useAdminBanners();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="banners">
-            <BannersTab />
+            <BannersTab banners={banners} />
           </TabsContent>
 
           <TabsContent value="orders">
