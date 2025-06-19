@@ -16,42 +16,25 @@ import { useNavigate } from 'react-router-dom';
 
 export const AdminPanel = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
-  const [produtos, setProdutos] = useState([]);
-  const [banners, setBanners] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && user && isAdmin) {
-      fetchData();
+      fetchPedidos();
     }
   }, [user, isAdmin, loading]);
 
-  const fetchData = async () => {
+  const fetchPedidos = async () => {
     try {
-      // Buscar produtos
-      const { data: produtosData } = await supabase
-        .from('produtos')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      // Buscar banners
-      const { data: bannersData } = await supabase
-        .from('banners')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      // Buscar pedidos
       const { data: pedidosData } = await supabase
         .from('pedidos')
         .select('*')
         .order('created_at', { ascending: false });
 
-      setProdutos(produtosData || []);
-      setBanners(bannersData || []);
       setPedidos(pedidosData || []);
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Erro ao buscar pedidos:', error);
     }
   };
 
@@ -114,11 +97,11 @@ export const AdminPanel = () => {
           </TabsList>
 
           <TabsContent value="products">
-            <ProductsTab produtos={produtos} />
+            <ProductsTab />
           </TabsContent>
 
           <TabsContent value="banners">
-            <BannersTab banners={banners} />
+            <BannersTab />
           </TabsContent>
 
           <TabsContent value="orders">
