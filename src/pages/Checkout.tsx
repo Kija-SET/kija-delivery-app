@@ -12,7 +12,14 @@ import { useNavigate } from 'react-router-dom';
 export const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, getCartTotal, customerInfo, setCustomerInfo, createOrder } = useStore();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    paymentMethod: 'pix' | 'card';
+  }>({
     name: customerInfo?.name || '',
     phone: customerInfo?.phone || '',
     address: customerInfo?.address || '',
@@ -34,7 +41,7 @@ export const Checkout = () => {
 
     setCustomerInfo({
       ...formData,
-      paymentMethod: formData.paymentMethod as 'pix' | 'card'
+      paymentMethod: formData.paymentMethod
     });
     createOrder();
     navigate('/order-confirmation');
@@ -126,7 +133,7 @@ export const Checkout = () => {
                     <Label className="text-base font-semibold">Método de Pagamento</Label>
                     <RadioGroup
                       value={formData.paymentMethod}
-                      onValueChange={(value) => setFormData({...formData, paymentMethod: value})}
+                      onValueChange={(value: 'pix' | 'card') => setFormData({...formData, paymentMethod: value})}
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="pix" id="pix" />

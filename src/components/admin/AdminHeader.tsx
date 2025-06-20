@@ -1,12 +1,14 @@
 
 import { Button } from '@/components/ui/button';
+import { Home } from 'lucide-react';
 
 interface AdminHeaderProps {
   userEmail: string;
   onLogout: () => void;
+  onGoHome: () => void;
 }
 
-export const AdminHeader = ({ userEmail, onLogout }: AdminHeaderProps) => {
+export const AdminHeader = ({ userEmail, onLogout, onGoHome }: AdminHeaderProps) => {
   return (
     <div className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -18,6 +20,10 @@ export const AdminHeader = ({ userEmail, onLogout }: AdminHeaderProps) => {
             <span className="text-sm text-gray-600">
               Bem-vindo, {userEmail}
             </span>
+            <Button variant="outline" onClick={onGoHome}>
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
             <Button variant="outline" onClick={onLogout}>
               Sair
             </Button>
