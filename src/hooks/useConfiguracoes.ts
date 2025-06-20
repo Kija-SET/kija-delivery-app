@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Configuracao {
@@ -12,53 +11,79 @@ export interface Configuracao {
   updated_at: string;
 }
 
+// Configurações padrão hardcoded por enquanto
+const defaultConfiguracoes: Configuracao[] = [
+  {
+    id: '1',
+    chave: 'tempo_entrega',
+    valor: '30-50 min',
+    descricao: 'Tempo estimado de entrega',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    chave: 'avaliacao',
+    valor: '4.9',
+    descricao: 'Avaliação da loja',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    chave: 'total_avaliacoes',
+    valor: '693',
+    descricao: 'Total de avaliações recebidas',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    chave: 'taxa_entrega',
+    valor: 'Grátis',
+    descricao: 'Taxa de entrega',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '5',
+    chave: 'cidade_entrega',
+    valor: 'Maringá, PR',
+    descricao: 'Cidade de entrega atual',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '6',
+    chave: 'distancia_loja',
+    valor: '2,3 km',
+    descricao: 'Distância da loja mais próxima',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
 export const useConfiguracoes = () => {
-  const [configuracoes, setConfiguracoes] = useState<Configuracao[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [configuracoes, setConfiguracoes] = useState<Configuracao[]>(defaultConfiguracoes);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  const fetchConfiguracoes = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('configuracoes')
-        .select('*')
-        .order('chave');
-
-      if (error) throw error;
-      setConfiguracoes(data || []);
-    } catch (error: any) {
-      console.error('Erro ao buscar configurações:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as configurações',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateConfiguracao = async (chave: string, valor: string) => {
     try {
-      const { data, error } = await supabase
-        .from('configuracoes')
-        .update({ valor, updated_at: new Date().toISOString() })
-        .eq('chave', chave)
-        .select()
-        .single();
-
-      if (error) throw error;
-
       setConfiguracoes(prev => 
-        prev.map(config => config.chave === chave ? data : config)
+        prev.map(config => 
+          config.chave === chave 
+            ? { ...config, valor, updated_at: new Date().toISOString() }
+            : config
+        )
       );
 
       toast({
         title: 'Sucesso',
         description: 'Configuração atualizada com sucesso',
       });
-      return data;
+      
+      return configuracoes.find(c => c.chave === chave);
     } catch (error: any) {
       console.error('Erro ao atualizar configuração:', error);
       toast({
@@ -74,15 +99,11 @@ export const useConfiguracoes = () => {
     return configuracoes.find(config => config.chave === chave)?.valor || '';
   };
 
-  useEffect(() => {
-    fetchConfiguracoes();
-  }, []);
-
   return {
     configuracoes,
     loading,
     updateConfiguracao,
     getConfiguracao,
-    refetch: fetchConfiguracoes,
+    refetch: () => {},
   };
 };

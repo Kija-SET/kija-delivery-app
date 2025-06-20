@@ -12,7 +12,7 @@ export const HeroBanner = () => {
         <div className="text-center space-y-6">
           {/* Logo Central - Maior e Circular */}
           <div className="flex justify-center mb-6">
-            <div className="w-32 h-32 rounded-full overflow-hidden shadow-xl hover-lift border-4 border-white">
+            <div className="w-40 h-40 rounded-full overflow-hidden shadow-xl hover-lift border-4 border-white">
               <img
                 src="/lovable-uploads/1d9a76da-3e98-488b-a1ae-c01946763f10.png"
                 alt="Açaí Kija"

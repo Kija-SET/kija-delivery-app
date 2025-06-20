@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { Menu, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
-import { storeInfo, categories } from '@/data/products';
+
+// Categorias disponíveis
+const categories = ['Açaí', 'Vitaminas', 'Sobremesas', 'Bebidas'];
 
 export const Navbar = () => {
   const { isMobileMenuOpen, setMobileMenuOpen, toggleCart, getCartItemsCount } = useStore();
@@ -33,7 +35,7 @@ export const Navbar = () => {
               </div>
               <div className="text-white">
                 <h1 className="font-bold text-lg">Açaí Kija</h1>
-                <p className="text-xs text-purple-100">ABERTO até {storeInfo.closingTime}</p>
+                <p className="text-xs text-purple-100">ABERTO até 22:00</p>
               </div>
             </div>
 
