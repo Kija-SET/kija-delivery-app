@@ -1,18 +1,20 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-// Categorias disponíveis
-const categories = ['Açaí', 'Vitaminas', 'Sobremesas', 'Bebidas'];
+import { useProducts } from '@/hooks/useProducts';
 
 export const Navbar = () => {
   const { isMobileMenuOpen, setMobileMenuOpen } = useStore();
+  const { products } = useProducts();
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  
+  // Extrair categorias únicas dos produtos
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
   const scrollToCategory = (category: string) => {
     if (!isHomePage) {
@@ -76,7 +78,7 @@ export const Navbar = () => {
                   className="text-white hover:bg-white/20 transition-colors"
                   onClick={() => scrollToCategory(category)}
                 >
-                  {category}
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
                 </Button>
               ))}
             </div>
@@ -119,7 +121,7 @@ export const Navbar = () => {
                   className="w-full justify-start text-gray-700 hover:bg-purple-50"
                   onClick={() => scrollToCategory(category)}
                 >
-                  {category}
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
                 </Button>
               ))}
             </div>

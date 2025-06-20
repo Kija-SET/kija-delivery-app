@@ -28,6 +28,7 @@ export const useAdminBanners = () => {
 
       if (error) throw error;
       setBanners(data || []);
+      console.log('Banners carregados:', data?.length || 0);
     } catch (error: any) {
       console.error('Erro ao buscar banners:', error);
       toast({
@@ -42,6 +43,7 @@ export const useAdminBanners = () => {
 
   const createBanner = async (bannerData: Omit<Banner, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Criando banner:', bannerData);
       const { data, error } = await supabase
         .from('banners')
         .insert([bannerData])
@@ -69,6 +71,7 @@ export const useAdminBanners = () => {
 
   const updateBanner = async (id: string, bannerData: Partial<Banner>) => {
     try {
+      console.log('Atualizando banner:', id, bannerData);
       const { data, error } = await supabase
         .from('banners')
         .update({ ...bannerData, updated_at: new Date().toISOString() })
@@ -97,6 +100,7 @@ export const useAdminBanners = () => {
 
   const deleteBanner = async (id: string) => {
     try {
+      console.log('Deletando banner:', id);
       const { error } = await supabase
         .from('banners')
         .delete()
