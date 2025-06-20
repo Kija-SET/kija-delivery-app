@@ -3,8 +3,10 @@ import { ShoppingCart, Plus, Minus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useStore } from '@/store/useStore';
+import { useNavigate } from 'react-router-dom';
 
 export const CartDrawer = () => {
+  const navigate = useNavigate();
   const { 
     cartItems, 
     isCartOpen, 
@@ -18,16 +20,21 @@ export const CartDrawer = () => {
 
   const total = getCartTotal();
 
+  const handleCheckout = () => {
+    toggleCart();
+    navigate('/checkout');
+  };
+
   return (
-    <div className="fixed inset-0 z-50 md:relative md:inset-auto">
+    <div className="fixed inset-0 z-50">
       {/* Overlay */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 md:hidden" 
+        className="fixed inset-0 bg-black bg-opacity-50" 
         onClick={toggleCart}
       />
       
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 animate-slide-up md:relative md:animate-none">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 animate-slide-up">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
@@ -128,7 +135,11 @@ export const CartDrawer = () => {
               </div>
               
               <div className="space-y-2">
-                <Button className="w-full gradient-purple text-white hover-lift" size="lg">
+                <Button 
+                  className="w-full gradient-purple text-white hover-lift" 
+                  size="lg"
+                  onClick={handleCheckout}
+                >
                   Finalizar Compra
                 </Button>
                 <Button variant="outline" className="w-full" onClick={toggleCart}>

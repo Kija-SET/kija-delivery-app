@@ -51,15 +51,18 @@ export const useStore = create<StoreState>()(
         const complementsPrice = complements?.reduce((sum, comp) => sum + comp.price, 0) || 0;
         const totalPrice = basePrice + complementsPrice;
         
-        const existingItemIndex = cartItems.findIndex(item => 
-          item.product.id === product.id &&
-          item.selectedVariation?.id === variation?.id
-        );
+        // Create unique key for cart item
+        const itemKey = `${product.id}-${variation?.id || 'default'}-${complements?.map(c => c.id).sort().join(',') || 'none'}`;
+        
+        const existingItemIndex = cartItems.findIndex(item => {
+          const existingKey = `${item.product.id}-${item.selectedVariation?.id || 'default'}-${item.selectedComplements?.map(c => c.id).sort().join(',') || 'none'}`;
+          return existingKey === itemKey;
+        });
         
         if (existingItemIndex >= 0) {
           const updatedItems = [...cartItems];
           updatedItems[existingItemIndex].quantity += 1;
-          updatedItems[existingItemIndex].totalPrice = totalPrice * updatedItems[existingItemIndex].quantity;
+          updatedItems[existingItemIndex].totalPrice = (basePrice + complementsPrice) * updatedItems[existingItemIndex].quantity;
           set({ cartItems: updatedItems });
         } else {
           const newItem: CartItem = {
@@ -136,7 +139,7 @@ export const useStore = create<StoreState>()(
           estimatedDelivery: new Date(Date.now() + 35 * 60 * 1000) // 35 minutes from now
         };
         
-        set({ currentOrder: order, cartItems: [] });
+        set({ currentOrder: order, cartItems: [], isCartOpen: false });
       },
       
       // Mobile menu state

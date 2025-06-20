@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useStore } from '@/store/useStore';
-import { ArrowLeft, CreditCard } from 'lucide-react';
+import { ArrowLeft, CreditCard, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Checkout = () => {
@@ -22,13 +22,42 @@ export const Checkout = () => {
   });
 
   const total = getCartTotal();
+  const discountedTotal = formData.paymentMethod === 'pix' ? total * 0.95 : total;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setCustomerInfo(formData as any);
+    
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.address.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    setCustomerInfo({
+      ...formData,
+      paymentMethod: formData.paymentMethod as 'pix' | 'card'
+    });
     createOrder();
     navigate('/order-confirmation');
   };
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Carrinho Vazio</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p>Adicione alguns itens ao carrinho antes de finalizar o pedido.</p>
+            <Button onClick={() => navigate('/')} className="w-full gradient-purple">
+              <Home className="h-4 w-4 mr-2" />
+              Voltar para Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,35 +87,38 @@ export const Checkout = () => {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <Input
-                    placeholder="Nome completo"
+                    placeholder="Nome completo *"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({...formData, name: e.target.value.slice(0, 100)})}
                     required
+                    maxLength={100}
                   />
                   <Input
-                    placeholder="Telefone"
+                    placeholder="Telefone *"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value.slice(0, 15)})}
                     required
+                    maxLength={15}
                   />
                   <Input
-                    placeholder="Endereço completo"
+                    placeholder="Endereço completo *"
                     value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    onChange={(e) => setFormData({...formData, address: e.target.value.slice(0, 200)})}
                     required
+                    maxLength={200}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       placeholder="Cidade"
                       value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                      required
+                      onChange={(e) => setFormData({...formData, city: e.target.value.slice(0, 50)})}
+                      maxLength={50}
                     />
                     <Input
                       placeholder="Estado"
                       value={formData.state}
-                      onChange={(e) => setFormData({...formData, state: e.target.value})}
-                      required
+                      onChange={(e) => setFormData({...formData, state: e.target.value.slice(0, 2)})}
+                      maxLength={2}
                     />
                   </div>
 
@@ -94,11 +126,13 @@ export const Checkout = () => {
                     <Label className="text-base font-semibold">Método de Pagamento</Label>
                     <RadioGroup
                       value={formData.paymentMethod}
-                      onValueChange={(value) => setFormData({...formData, paymentMethod: value as 'pix' | 'card'})}
+                      onValueChange={(value) => setFormData({...formData, paymentMethod: value})}
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="pix" id="pix" />
-                        <Label htmlFor="pix">PIX (Desconto de 5%)</Label>
+                        <Label htmlFor="pix" className="text-green-600 font-medium">
+                          PIX (Desconto de 5% - R$ {discountedTotal.toFixed(2)})
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="card" id="card" />
@@ -111,9 +145,10 @@ export const Checkout = () => {
                     type="submit"
                     className="w-full gradient-purple text-white"
                     size="lg"
+                    disabled={!formData.name.trim() || !formData.phone.trim() || !formData.address.trim()}
                   >
                     <CreditCard className="h-5 w-5 mr-2" />
-                    Finalizar Pedido - R$ {total.toFixed(2)}
+                    Finalizar Pedido - R$ {discountedTotal.toFixed(2)}
                   </Button>
                 </form>
               </CardContent>
@@ -128,7 +163,7 @@ export const Checkout = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.product.id} className="flex justify-between items-center">
+                  <div key={`${item.product.id}-${item.selectedVariation?.id || 'default'}`} className="flex justify-between items-center">
                     <div>
                       <h3 className="font-medium">{item.product.name}</h3>
                       <p className="text-sm text-gray-600">Qtd: {item.quantity}</p>
@@ -139,10 +174,20 @@ export const Checkout = () => {
                     <span className="font-semibold">R$ {item.totalPrice.toFixed(2)}</span>
                   </div>
                 ))}
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center text-lg font-bold">
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span>Subtotal</span>
+                    <span>R$ {total.toFixed(2)}</span>
+                  </div>
+                  {formData.paymentMethod === 'pix' && (
+                    <div className="flex justify-between items-center text-green-600">
+                      <span>Desconto PIX (5%)</span>
+                      <span>-R$ {(total * 0.05).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
                     <span>Total</span>
-                    <span className="text-purple-600">R$ {total.toFixed(2)}</span>
+                    <span className="text-purple-600">R$ {discountedTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
