@@ -12,7 +12,6 @@ import { OrdersTab } from '@/components/admin/OrdersTab';
 import { ContentTab } from '@/components/admin/ContentTab';
 import { DatabaseTab } from '@/components/admin/DatabaseTab';
 import { ConfiguracoesTab } from '@/components/admin/ConfiguracoesTab';
-import { UserManagement } from '@/components/admin/UserManagement';
 import { useAdminBanners } from '@/hooks/useAdminBanners';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -119,11 +118,10 @@ export const AdminPanel = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="banners">Banners</TabsTrigger>
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="content">Conteúdo</TabsTrigger>
             <TabsTrigger value="config">Configurações</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
@@ -139,12 +137,6 @@ export const AdminPanel = () => {
 
           <TabsContent value="orders">
             <OrdersTab pedidos={pedidos} />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <div className="space-y-6">
-              <UserManagement />
-            </div>
           </TabsContent>
 
           <TabsContent value="content">
