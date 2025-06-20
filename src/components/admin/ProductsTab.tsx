@@ -2,25 +2,26 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Trash2, Edit, Plus, Eye, EyeOff } from 'lucide-react';
-import { useAdminProducts, Product } from '@/hooks/useAdminProducts';
+import { Plus } from 'lucide-react';
+import { useAdminProducts } from '@/hooks/useAdminProducts';
+import { ProductGrid } from '@/components/common/ProductGrid';
 import { ProductForm } from './ProductForm';
+import { Product } from '@/types/product';
 
 export const ProductsTab = () => {
-  const { products, loading, createProduct, updateProduct, deleteProduct, toggleProductStatus } = useAdminProducts();
+  const { products, loading, createProduct, updateProduct, deleteProduct, toggleProductStatus, getActiveProductIds } = useAdminProducts();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const handleCreateProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleCreateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
     await createProduct(productData);
     setIsFormOpen(false);
   };
 
-  const handleUpdateProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleUpdateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
     if (!editingProduct) return;
     await updateProduct(editingProduct.id, productData);
     setEditingProduct(null);
@@ -32,8 +33,18 @@ export const ProductsTab = () => {
     setDeletingProduct(null);
   };
 
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  const handleDelete = (product: Product) => {
+    setDeletingProduct(product);
+  };
+
   const handleToggleStatus = async (product: Product) => {
-    await toggleProductStatus(product.id, !product.ativo);
+    const activeIds = getActiveProductIds();
+    const isCurrentlyActive = activeIds.includes(product.id);
+    await toggleProductStatus(product.id, !isCurrentlyActive);
   };
 
   if (loading) {
@@ -59,66 +70,15 @@ export const ProductsTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {products.map((produto) => (
-              <div key={produto.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center">
-                    {produto.imagem_url ? (
-                      <img 
-                        src={produto.imagem_url} 
-                        alt={produto.nome}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <span className="text-purple-600 text-xs">Sem foto</span>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{produto.nome}</h3>
-                    <p className="text-gray-600">R$ {produto.preco.toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">{produto.categoria}</p>
-                    {produto.descricao && (
-                      <p className="text-sm text-gray-400 truncate max-w-md">{produto.descricao}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className={produto.ativo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                    {produto.ativo ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleToggleStatus(produto)}
-                    title={produto.ativo ? 'Desativar' : 'Ativar'}
-                  >
-                    {produto.ativo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => setEditingProduct(produto)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="text-red-600 hover:text-red-700"
-                    onClick={() => setDeletingProduct(produto)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {products.length === 0 && (
-              <p className="text-center text-gray-500 py-8">
-                Nenhum produto cadastrado ainda.
-              </p>
-            )}
-          </div>
+          <ProductGrid
+            products={products}
+            mode="admin"
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleStatus={handleToggleStatus}
+            activeProducts={getActiveProductIds()}
+            emptyMessage="Nenhum produto cadastrado ainda."
+          />
         </CardContent>
       </Card>
 
@@ -157,7 +117,7 @@ export const ProductsTab = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o produto "{deletingProduct?.nome}"? 
+              Tem certeza que deseja excluir o produto "{deletingProduct?.name}"? 
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
