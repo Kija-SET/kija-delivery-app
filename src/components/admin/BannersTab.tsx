@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { useAdminBanners, Banner } from '@/hooks/useAdminBanners';
 import { BannerPreview } from './BannerPreview';
 import { BannerForm } from './BannerForm';
+import { useToast } from '@/hooks/use-toast';
 
 interface BannersTabProps {
   banners: Banner[];
@@ -18,27 +19,44 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [deletingBanner, setDeletingBanner] = useState<Banner | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (bannerData: Omit<Banner, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Salvando banner:', bannerData);
       if (editingBanner) {
         await updateBanner(editingBanner.id, bannerData);
+        toast({
+          title: 'Sucesso!',
+          description: 'Banner atualizado com sucesso',
+        });
       } else {
         await createBanner(bannerData);
+        toast({
+          title: 'Sucesso!',
+          description: 'Banner criado com sucesso',
+        });
       }
       
       setIsFormOpen(false);
       resetForm();
     } catch (error) {
       console.error('Erro ao salvar banner:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao salvar banner',
+        variant: 'destructive',
+      });
     }
   };
 
   const resetForm = () => {
+    console.log('Resetando formulário de banner');
     setEditingBanner(null);
   };
 
   const handleEdit = (banner: Banner) => {
+    console.log('Editando banner:', banner);
     setEditingBanner(banner);
     setIsFormOpen(true);
   };
@@ -46,19 +64,51 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
   const handleDelete = async () => {
     if (!deletingBanner) return;
     try {
+      console.log('Deletando banner:', deletingBanner.id);
       await deleteBanner(deletingBanner.id);
       setDeletingBanner(null);
+      toast({
+        title: 'Sucesso!',
+        description: 'Banner excluído com sucesso',
+      });
     } catch (error) {
       console.error('Erro ao deletar banner:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir banner',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleToggleStatus = async (banner: Banner) => {
     try {
+      console.log('Alterando status do banner:', banner.id, 'para:', !banner.ativo);
       await toggleBannerStatus(banner.id, !banner.ativo);
+      toast({
+        title: 'Sucesso!',
+        description: `Banner ${!banner.ativo ? 'ativado' : 'desativado'} com sucesso`,
+      });
     } catch (error) {
       console.error('Erro ao alterar status do banner:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao alterar status do banner',
+        variant: 'destructive',
+      });
     }
+  };
+
+  const handleAddNew = () => {
+    console.log('Abrindo formulário para novo banner');
+    resetForm();
+    setIsFormOpen(true);
+  };
+
+  const handleCancelForm = () => {
+    console.log('Cancelando formulário de banner');
+    setIsFormOpen(false);
+    resetForm();
   };
 
   return (
@@ -67,7 +117,7 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Gerenciar Banners Promocionais ({banners.length})</CardTitle>
-            <Button onClick={() => setIsFormOpen(true)} className="gradient-purple">
+            <Button onClick={handleAddNew} className="gradient-purple">
               <Plus className="h-4 w-4 mr-2" />
               Novo Banner
             </Button>
@@ -84,7 +134,7 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
       </Card>
 
       {/* Modal de Criação/Edição */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isFormOpen} onOpenChange={(open) => !open && handleCancelForm()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -94,10 +144,7 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
           <BannerForm
             banner={editingBanner}
             onSubmit={handleSubmit}
-            onCancel={() => {
-              setIsFormOpen(false);
-              resetForm();
-            }}
+            onCancel={handleCancelForm}
           />
         </DialogContent>
       </Dialog>
@@ -113,7 +160,9 @@ export const BannersTab = ({ banners }: BannersTabProps) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeletingBanner(null)}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"

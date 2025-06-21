@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, Loader2 } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductFormProps {
   product?: Product;
@@ -25,29 +26,64 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
   });
   const [loading, setLoading] = useState(false);
   const { uploadImage, uploading } = useImageUpload();
+  const { toast } = useToast();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log('Fazendo upload da imagem:', file.name);
     const imageUrl = await uploadImage(file, 'produtos');
     if (imageUrl) {
+      console.log('Imagem carregada com sucesso:', imageUrl);
       setFormData(prev => ({ ...prev, image: imageUrl }));
+      toast({
+        title: 'Sucesso!',
+        description: 'Imagem carregada com sucesso',
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || formData.price <= 0) {
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Nome do produto é obrigatório',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.price <= 0) {
+      toast({
+        title: 'Erro',
+        description: 'Preço deve ser maior que zero',
+        variant: 'destructive',
+      });
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Salvando produto:', formData);
       await onSubmit(formData);
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao salvar produto',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    console.log('Cancelando formulário de produto');
+    onCancel();
   };
 
   return (
@@ -59,6 +95,7 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
             id="name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Ex: Açaí 500ml"
             required
           />
         </div>
@@ -71,6 +108,7 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
             min="0"
             value={formData.price}
             onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+            placeholder="0.00"
             required
           />
         </div>
@@ -97,6 +135,7 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
           id="description"
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Descreva o produto..."
           rows={3}
         />
       </div>
@@ -136,13 +175,23 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
       </div>
 
       <div className="flex space-x-2 pt-4">
-        <Button type="submit" disabled={loading || uploading} className="flex-1">
+        <Button 
+          type="submit" 
+          disabled={loading || uploading} 
+          className="flex-1 gradient-purple"
+        >
           {loading ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : null}
           {product ? 'Atualizar' : 'Criar'} Produto
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleCancel} 
+          className="flex-1"
+          disabled={loading}
+        >
           Cancelar
         </Button>
       </div>

@@ -9,42 +9,115 @@ import { useAdminProducts } from '@/hooks/useAdminProducts';
 import { ProductGrid } from '@/components/common/ProductGrid';
 import { ProductForm } from './ProductForm';
 import { Product } from '@/types/product';
+import { useToast } from '@/hooks/use-toast';
 
 export const ProductsTab = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct, toggleProductStatus, getActiveProductIds } = useAdminProducts();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const { toast } = useToast();
 
   const handleCreateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
-    await createProduct(productData);
-    setIsFormOpen(false);
+    try {
+      console.log('Criando produto:', productData);
+      await createProduct(productData);
+      setIsFormOpen(false);
+      toast({
+        title: 'Sucesso!',
+        description: 'Produto criado com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao criar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao criar produto',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleUpdateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
     if (!editingProduct) return;
-    await updateProduct(editingProduct.id, productData);
-    setEditingProduct(null);
+    try {
+      console.log('Atualizando produto:', editingProduct.id, productData);
+      await updateProduct(editingProduct.id, productData);
+      setEditingProduct(null);
+      toast({
+        title: 'Sucesso!',
+        description: 'Produto atualizado com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar produto',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDeleteProduct = async () => {
     if (!deletingProduct) return;
-    await deleteProduct(deletingProduct.id);
-    setDeletingProduct(null);
+    try {
+      console.log('Deletando produto:', deletingProduct.id);
+      await deleteProduct(deletingProduct.id);
+      setDeletingProduct(null);
+      toast({
+        title: 'Sucesso!',
+        description: 'Produto excluído com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao deletar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir produto',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEdit = (product: Product) => {
+    console.log('Editando produto:', product);
     setEditingProduct(product);
+    setIsFormOpen(true);
   };
 
   const handleDelete = (product: Product) => {
+    console.log('Preparando para deletar produto:', product);
     setDeletingProduct(product);
   };
 
   const handleToggleStatus = async (product: Product) => {
-    const activeIds = getActiveProductIds();
-    const isCurrentlyActive = activeIds.includes(product.id);
-    await toggleProductStatus(product.id, !isCurrentlyActive);
+    try {
+      const activeIds = getActiveProductIds();
+      const isCurrentlyActive = activeIds.includes(product.id);
+      console.log('Alterando status do produto:', product.id, 'para:', !isCurrentlyActive);
+      await toggleProductStatus(product.id, !isCurrentlyActive);
+      toast({
+        title: 'Sucesso!',
+        description: `Produto ${!isCurrentlyActive ? 'ativado' : 'desativado'} com sucesso`,
+      });
+    } catch (error) {
+      console.error('Erro ao alterar status do produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao alterar status do produto',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAddNew = () => {
+    console.log('Abrindo formulário para novo produto');
+    setEditingProduct(null);
+    setIsFormOpen(true);
+  };
+
+  const handleCancelForm = () => {
+    console.log('Cancelando formulário');
+    setIsFormOpen(false);
+    setEditingProduct(null);
   };
 
   if (loading) {
@@ -63,7 +136,7 @@ export const ProductsTab = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Gerenciar Produtos ({products.length})</CardTitle>
-            <Button onClick={() => setIsFormOpen(true)} className="gradient-purple">
+            <Button onClick={handleAddNew} className="gradient-purple">
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
             </Button>
@@ -83,20 +156,20 @@ export const ProductsTab = () => {
       </Card>
 
       {/* Modal de Criação */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isFormOpen && !editingProduct} onOpenChange={(open) => !open && handleCancelForm()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Novo Produto</DialogTitle>
           </DialogHeader>
           <ProductForm
             onSubmit={handleCreateProduct}
-            onCancel={() => setIsFormOpen(false)}
+            onCancel={handleCancelForm}
           />
         </DialogContent>
       </Dialog>
 
       {/* Modal de Edição */}
-      <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
+      <Dialog open={isFormOpen && !!editingProduct} onOpenChange={(open) => !open && handleCancelForm()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Produto</DialogTitle>
@@ -105,7 +178,7 @@ export const ProductsTab = () => {
             <ProductForm
               product={editingProduct}
               onSubmit={handleUpdateProduct}
-              onCancel={() => setEditingProduct(null)}
+              onCancel={handleCancelForm}
             />
           )}
         </DialogContent>
@@ -122,7 +195,9 @@ export const ProductsTab = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeletingProduct(null)}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteProduct}
               className="bg-red-600 hover:bg-red-700"

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Eye, EyeOff, Plus } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Product } from '@/types/product';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -23,10 +24,12 @@ export const ProductCard = ({
   onToggleStatus,
   isActive = true
 }: ProductCardProps) => {
-  const { setSelectedProduct, setProductModalOpen } = useStore();
+  const { setSelectedProduct, setProductModalOpen, addToCart } = useStore();
+  const { toast } = useToast();
 
   const handleClick = () => {
     if (mode === 'customer') {
+      console.log('Abrindo modal do produto:', product);
       setSelectedProduct(product);
       setProductModalOpen(true);
     }
@@ -34,17 +37,30 @@ export const ProductCard = ({
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('Clique em editar produto:', product);
     onEdit?.(product);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('Clique em deletar produto:', product);
     onDelete?.(product);
   };
 
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('Clique em alterar status do produto:', product);
     onToggleStatus?.(product);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Adicionando produto ao carrinho:', product);
+    addToCart(product);
+    toast({
+      title: 'Produto adicionado!',
+      description: `${product.name} foi adicionado ao carrinho`,
+    });
   };
 
   return (
@@ -74,7 +90,7 @@ export const ProductCard = ({
             R$ {product.price.toFixed(2)}
           </span>
           {mode === 'customer' ? (
-            <Button size="sm" className="gradient-purple">
+            <Button size="sm" className="gradient-purple" onClick={handleAddToCart}>
               <Plus className="h-4 w-4 mr-1" />
               Adicionar
             </Button>
