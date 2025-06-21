@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ProductsTab } from '@/components/admin/ProductsTab';
 import { BannersTab } from '@/components/admin/BannersTab';
+import { ComplementsTab } from '@/components/admin/ComplementsTab';
 import { OrdersTab } from '@/components/admin/OrdersTab';
 import { ContentTab } from '@/components/admin/ContentTab';
 import { DatabaseTab } from '@/components/admin/DatabaseTab';
@@ -117,8 +119,9 @@ export const AdminPanel = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="complements">Complementos</TabsTrigger>
             <TabsTrigger value="banners">Banners</TabsTrigger>
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
             <TabsTrigger value="content">Conteúdo</TabsTrigger>
@@ -128,6 +131,10 @@ export const AdminPanel = () => {
 
           <TabsContent value="products">
             <ProductsTab />
+          </TabsContent>
+
+          <TabsContent value="complements">
+            <ComplementsTab />
           </TabsContent>
 
           <TabsContent value="banners">

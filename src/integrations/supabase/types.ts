@@ -54,6 +54,39 @@ export type Database = {
         }
         Relationships: []
       }
+      complementos: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          preco: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          preco?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          preco?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pedidos: {
         Row: {
           created_at: string
@@ -85,6 +118,42 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_complementos: {
+        Row: {
+          complemento_id: string
+          created_at: string
+          id: string
+          produto_id: string
+        }
+        Insert: {
+          complemento_id: string
+          created_at?: string
+          id?: string
+          produto_id: string
+        }
+        Update: {
+          complemento_id?: string
+          created_at?: string
+          id?: string
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_complementos_complemento_id_fkey"
+            columns: ["complemento_id"]
+            isOneToOne: false
+            referencedRelation: "complementos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_complementos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
             referencedColumns: ["id"]
           },
         ]
