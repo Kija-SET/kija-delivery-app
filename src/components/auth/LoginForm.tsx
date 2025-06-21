@@ -19,10 +19,76 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   
   const { signIn } = useAuth();
 
+  // Credenciais de acesso administrativo
+  const adminEmail = 'dw12021996@gmail.com';
+  const adminPassword = '44991512466+';
+
+  const handleQuickAccess = () => {
+    setEmail(adminEmail);
+    setPassword(adminPassword);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Verificar se são as credenciais de admin especiais
+    if (email === adminEmail && password === adminPassword) {
+      // Acesso direto para o admin
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        
+        // Verificar se o usuário já existe
+        const { data: existingUser } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('email', adminEmail)
+          .single();
+
+        if (!existingUser) {
+          // Criar usuário admin se não existir
+          const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+            email: adminEmail,
+            password: adminPassword,
+            email_confirm: true
+          });
+
+          if (authError) {
+            setError('Erro ao criar conta admin: ' + authError.message);
+            setLoading(false);
+            return;
+          }
+
+          // Criar perfil do usuário admin
+          if (authUser.user) {
+            const { error: profileError } = await supabase
+              .from('usuarios')
+              .insert({
+                id: authUser.user.id,
+                email: authUser.user.email!,
+                role: 'admin'
+              });
+
+            if (profileError) {
+              console.error('Erro ao criar perfil admin:', profileError);
+            }
+          }
+        }
+
+        // Fazer login
+        const { error: loginError } = await signIn(email, password);
+        if (loginError) {
+          setError('Erro no login: ' + loginError.message);
+        } else {
+          onSuccess?.();
+        }
+      } catch (err) {
+        setError('Erro ao processar acesso administrativo');
+      }
+      setLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       // Para cadastro, usar a API de admin do Supabase
@@ -106,6 +172,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               </AlertDescription>
             </Alert>
           )}
+          
+          <div className="space-y-2">
+            <Button
+              type="button"
+              onClick={handleQuickAccess}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={loading}
+            >
+              🚀 Acesso Administrativo Rápido
+            </Button>
+            <p className="text-xs text-gray-500 text-center">
+              Clique para preencher automaticamente as credenciais de admin
+            </p>
+          </div>
           
           <div>
             <Input

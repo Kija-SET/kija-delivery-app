@@ -30,6 +30,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Email com acesso total
+  const masterAdminEmail = 'dw12021996@gmail.com';
+
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -59,11 +62,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Verificar se é o usuário com acesso total
+          const isMasterAdmin = session.user.email === masterAdminEmail;
+          
           // Buscar perfil do usuário quando autenticado
           setTimeout(async () => {
             const profile = await fetchUserProfile(session.user.id);
             setUserProfile(profile);
-            setIsAdmin(profile?.role === 'admin');
+            
+            // Definir como admin se for o email especial ou se o perfil indica admin
+            const adminStatus = isMasterAdmin || profile?.role === 'admin';
+            setIsAdmin(adminStatus);
             setLoading(false);
           }, 0);
         } else {
@@ -80,9 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        const isMasterAdmin = session.user.email === masterAdminEmail;
+        
         fetchUserProfile(session.user.id).then(profile => {
           setUserProfile(profile);
-          setIsAdmin(profile?.role === 'admin');
+          const adminStatus = isMasterAdmin || profile?.role === 'admin';
+          setIsAdmin(adminStatus);
           setLoading(false);
         });
       } else {
