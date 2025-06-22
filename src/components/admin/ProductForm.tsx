@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface ProductFormProps {
   product?: Product;
-  onSubmit: (data: Omit<Product, 'id' | 'featured'>) => Promise<void>;
+  onSubmit: (data: Omit<Product, 'id' | 'featured'>) => Promise<Product | void>;
   onCancel: () => void;
 }
 
@@ -106,8 +106,8 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
       const savedProduct = await onSubmit(formData);
       
       // Associar complementos ao produto
-      if (savedProduct?.id || product?.id) {
-        const productId = savedProduct?.id || product!.id;
+      const productId = savedProduct?.id || product?.id;
+      if (productId) {
         await associateComplementToProduct(productId, selectedComplements);
         console.log('Complementos associados ao produto:', selectedComplements);
       }

@@ -18,15 +18,16 @@ export const ProductsTab = () => {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
-  const handleCreateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
+  const handleCreateProduct = async (productData: Omit<Product, 'id' | 'featured'>): Promise<Product> => {
     try {
       console.log('Criando produto:', productData);
-      await createProduct(productData);
+      const newProduct = await createProduct(productData);
       setIsFormOpen(false);
       toast({
         title: 'Sucesso!',
         description: 'Produto criado com sucesso',
       });
+      return newProduct;
     } catch (error) {
       console.error('Erro ao criar produto:', error);
       toast({
@@ -34,19 +35,21 @@ export const ProductsTab = () => {
         description: 'Erro ao criar produto',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
-  const handleUpdateProduct = async (productData: Omit<Product, 'id' | 'featured'>) => {
-    if (!editingProduct) return;
+  const handleUpdateProduct = async (productData: Omit<Product, 'id' | 'featured'>): Promise<Product> => {
+    if (!editingProduct) throw new Error('No product to update');
     try {
       console.log('Atualizando produto:', editingProduct.id, productData);
-      await updateProduct(editingProduct.id, productData);
+      const updatedProduct = await updateProduct(editingProduct.id, productData);
       setEditingProduct(null);
       toast({
         title: 'Sucesso!',
         description: 'Produto atualizado com sucesso',
       });
+      return updatedProduct;
     } catch (error) {
       console.error('Erro ao atualizar produto:', error);
       toast({
@@ -54,6 +57,7 @@ export const ProductsTab = () => {
         description: 'Erro ao atualizar produto',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
