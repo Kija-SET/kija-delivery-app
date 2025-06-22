@@ -59,9 +59,11 @@ export const useComplements = () => {
   useEffect(() => {
     fetchComplements();
 
-    // Configurar listener para atualizações em tempo real
+    // Create a unique channel name to avoid conflicts
+    const channelName = `complementos-changes-${Math.random().toString(36).substr(2, 9)}`;
+    
     const complementsChannel = supabase
-      .channel('complementos-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

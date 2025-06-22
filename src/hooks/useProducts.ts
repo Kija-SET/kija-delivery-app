@@ -33,10 +33,12 @@ export const useProducts = () => {
   useEffect(() => {
     fetchProducts();
 
-    // Configurar listener para atualizações em tempo real
-    console.log('Configurando listener de produtos em tempo real...');
+    // Create a unique channel name to avoid conflicts
+    const channelName = `produtos-changes-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Configurando listener de produtos em tempo real...', channelName);
+    
     const productsChannel = supabase
-      .channel('produtos-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -64,7 +66,7 @@ export const useProducts = () => {
       .subscribe();
 
     return () => {
-      console.log('Removendo listener de produtos...');
+      console.log('Removendo listener de produtos...', channelName);
       supabase.removeChannel(productsChannel);
     };
   }, []);
