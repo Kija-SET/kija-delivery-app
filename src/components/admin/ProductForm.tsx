@@ -62,7 +62,7 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
         productId = product.id;
       }
       
-      if (productId) {
+      if (productId && selectedComplements.length > 0) {
         await associateComplementToProduct(productId, selectedComplements);
         console.log('Complementos associados ao produto:', selectedComplements);
       }
