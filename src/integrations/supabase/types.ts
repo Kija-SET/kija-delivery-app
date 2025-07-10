@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          os: string | null
+          page_path: string | null
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          os?: string | null
+          page_path?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          os?: string | null
+          page_path?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           ativo: boolean | null
@@ -43,6 +136,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      categorias: {
+        Row: {
+          ativo: boolean | null
+          created_at: string
+          descricao: string | null
+          id: string
+          image_url: string | null
+          meta_description: string | null
+          meta_title: string | null
+          nome: string
+          ordem: number | null
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          nome: string
+          ordem?: number | null
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          nome?: string
+          ordem?: number | null
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       complementos: {
         Row: {
@@ -104,6 +250,39 @@ export type Database = {
           tipo?: string | null
           updated_at?: string
           valor?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -178,6 +357,100 @@ export type Database = {
           },
         ]
       }
+      produto_reviews: {
+        Row: {
+          approved: boolean | null
+          comment: string | null
+          created_at: string
+          id: string
+          produto_id: string
+          rating: number
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          produto_id: string
+          rating: number
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          produto_id?: string
+          rating?: number
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_reviews_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_variacoes: {
+        Row: {
+          ativo: boolean | null
+          created_at: string
+          estoque: number | null
+          id: string
+          nome: string
+          preco_adicional: number | null
+          produto_id: string
+          sku: string | null
+          tipo: string
+          updated_at: string
+          valor: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string
+          estoque?: number | null
+          id?: string
+          nome: string
+          preco_adicional?: number | null
+          produto_id: string
+          sku?: string | null
+          tipo: string
+          updated_at?: string
+          valor: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string
+          estoque?: number | null
+          id?: string
+          nome?: string
+          preco_adicional?: number | null
+          produto_id?: string
+          sku?: string | null
+          tipo?: string
+          updated_at?: string
+          valor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_variacoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           ativo: boolean | null
@@ -211,6 +484,39 @@ export type Database = {
           nome?: string
           preco?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          key?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }

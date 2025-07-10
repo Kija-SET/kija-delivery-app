@@ -10,10 +10,13 @@ import { FloatingCart } from '@/components/cart/FloatingCart';
 import { LocationModal } from '@/components/modals/LocationModal';
 import { ProductModal } from '@/components/modals/ProductModal';
 import { BackToTop } from '@/components/ui/BackToTop';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { useAnalytics } from '@/components/analytics/Analytics';
 import { useStore } from '@/store/useStore';
 
 const Index = () => {
   const { userLocation, setLocationModalOpen } = useStore();
+  const analytics = useAnalytics();
 
   useEffect(() => {
     // Show location modal on first visit if no location is set
@@ -25,26 +28,29 @@ const Index = () => {
   }, [userLocation, setLocationModalOpen]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      {/* Main Content */}
-      <main className="pt-16">
-        <HeroBanner />
-        <PromotionalBanners />
-        <FeaturedProducts />
-        <ProductCatalog />
-      </main>
+    <>
+      <SEOHead />
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        
+        {/* Main Content */}
+        <main className="pt-16">
+          <HeroBanner />
+          <PromotionalBanners />
+          <FeaturedProducts />
+          <ProductCatalog />
+        </main>
 
-      {/* Modals and Drawers */}
-      <LocationModal />
-      <ProductModal />
-      <CartDrawer />
-      
-      {/* Floating Elements */}
-      <FloatingCart />
-      <BackToTop />
-    </div>
+        {/* Modals and Drawers */}
+        <LocationModal />
+        <ProductModal />
+        <CartDrawer />
+        
+        {/* Floating Elements */}
+        <FloatingCart />
+        <BackToTop />
+      </div>
+    </>
   );
 };
 
